@@ -69,6 +69,8 @@
 #define CREATE_TRACE_POINTS
 #include "trace.h"
 
+#include <uapi/linux/vcpu_info.h>
+
 #define MAX_IO_MSRS 256
 #define KVM_MAX_MCE_BANKS 32
 u64 __read_mostly kvm_mce_cap_supported = MCG_CTL_P | MCG_SER_P;
@@ -6151,6 +6153,9 @@ int kvm_emulate_hypercall(struct kvm_vcpu *vcpu)
 		kvm_pv_kick_cpu_op(vcpu->kvm, a0, a1);
 		ret = 0;
 		break;
+	case KVM_HC_LAB_VCPU_INFO: // Handle newly defined hypercall
+		trace_printk("Received hypercall with args %lu %lu %lu %lu\n", a0, a1, a2, a3);
+		vcpu_info(vcpu->kvm, a0);
 	default:
 		ret = -KVM_ENOSYS;
 		break;
@@ -7145,6 +7150,7 @@ int kvm_arch_vcpu_ioctl_get_regs(struct kvm_vcpu *vcpu, struct kvm_regs *regs)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(kvm_arch_vcpu_ioctl_get_regs);
 
 int kvm_arch_vcpu_ioctl_set_regs(struct kvm_vcpu *vcpu, struct kvm_regs *regs)
 {
